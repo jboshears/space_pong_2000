@@ -19,12 +19,9 @@ const int GAME_LENGTH = 180;
 
 // ball size in pixels
 const byte BALL_SIZE = 1;
-const byte DY_UP = -1;
-const byte DY_DOWN = 1;
-const byte DY_NEUTRAL = 0;
-const byte DX_LEFT = -1;
-const byte DX_RIGHT = 1;
-const byte DX_NEUTRAL = 0;
+
+// vortex size
+const byte VORTEX_SIZE = 4;
 
 // ----------------------------------------------------------------
 // variables
@@ -48,6 +45,8 @@ typedef struct {
 } Ball;
 
 Ball ball;
+Ball vortex;
+
 int timeLeft;
 
 elapsedMillis timeElapsed;
@@ -65,7 +64,7 @@ void setup() {
     randomSeed(analogRead(0));
     
     // show the intro screen
-    //introScreen(); 
+    // TODO introScreen(); 
     initializeGame();
 
 }
@@ -73,7 +72,8 @@ void setup() {
 // main game loop
 void loop() {
 
-    // TODO
+    // draw the vortex
+    drawVortex();
 
     // update ball position
     eraseBall();
@@ -92,13 +92,8 @@ void loop() {
         introScreen();
     }
 
-    // test score updates
-    // updateScore(1,100);
-    // updateScore(2,75);
-
     // 20ms delay
-    delay(30);
-    
+    delay(30); 
 
 }
 
@@ -106,6 +101,8 @@ void loop() {
 //  until a controller button is pressed; then 
 //  initialize the game state and return
 void introScreen() {
+
+    tv.clear_screen();
    
     // 15 character string; 6 pixels width per character
     // uses 90 pixels; to center @ 128 pixels wide start at 15
@@ -162,10 +159,24 @@ void initializeGame() {
     timeLeft = GAME_LENGTH;
     updateTimer(timeLeft);
 
-    // setup the game ball
-    ball.x = random(49, 79);
-    ball.y = random(27, 54);
-    
+    // setup the vortex
+    vortex.x = 64;
+    vortex.y = 52;
+
+    // initialize the ball location and direction
+    resetBall();
+
+    // draw the the vortex
+    drawVortex();
+
+}
+
+// setup the game ball
+void resetBall() {
+
+    ball.x = 64;
+    ball.y = 52;
+
     while (ball.dx == 0) {
         ball.dx = getRandomDirection();
     }
@@ -175,7 +186,6 @@ void initializeGame() {
     }
 
     dropBall();
-
 }
 
 // get the player names
@@ -236,10 +246,34 @@ void moveBall() {
         ball.dy *= -1;
         bounceSound();
     }
+
+    // player 1 scored
+    if (ball.x == 125) {
+        player1.score++;
+        updateScore(1, player1.score);
+        scoreSound(1);
+        resetBall();
+    }
+
+    // player 2 scored
+    if (ball.x == 1) {
+        player2.score++;
+        updateScore(2, player2.score);
+        scoreSound(2);
+        resetBall();
+    }
     
-    if (ball.x == 125 || ball.x == 1) {
-        ball.dx *= -1;
-        bounceSound();
+    // is the ball in the vortex?
+    if ( (pow(vortex.x - ball.x, 2)  + pow(vortex.y - ball.y, 2)) <= pow(VORTEX_SIZE, 2) ) {
+        
+        // it is! ominous tone
+        vortexSound();
+        flashVortex();
+
+        // mess with the ball headings and location
+        ball.dx = getRandomDirection();
+        ball.dy = getRandomDirection();
+        
     }
 
     // update position
@@ -273,6 +307,26 @@ void dropBall() {
 void eraseBall() {
 
     tv.draw_rect(ball.x, ball.y, BALL_SIZE, BALL_SIZE, BLACK);
+    
+}
+
+// draw the vortex;
+void drawVortex() {
+    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, WHITE);
+}
+
+// flash the vortex
+void flashVortex() {
+    
+    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, WHITE);
+    delay(20);
+    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, BLACK);
+    delay(20);
+    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, WHITE);
+    delay(20);
+    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, BLACK);
+    delay(20);
+    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, WHITE);
     
 }
 
@@ -318,6 +372,41 @@ void playTitleTheme() {
 // ball bounce on wall sound
 void bounceSound() {
     tv.tone(NOTE_C4,20);
+}
+
+// vortexSound
+void vortexSound() {
+    tv.tone(NOTE_F3,100); 
+}
+
+// score sound
+void scoreSound(byte player) {
+
+    if (player == 1) {
+        tv.tone(NOTE_A4,100);
+        delay(100); 
+        tv.tone(NOTE_B4,100);
+        delay(100);
+        tv.tone(NOTE_C4,100);
+        delay(100);
+        tv.tone(NOTE_D4,100);
+        delay(100);
+        tv.tone(NOTE_E4,100);
+        delay(100);
+    }
+    else {
+        tv.tone(NOTE_E4,100);
+        delay(100); 
+        tv.tone(NOTE_D4,100); 
+        delay(100);
+        tv.tone(NOTE_C4,100); 
+        delay(100);
+        tv.tone(NOTE_B4,100); 
+        delay(100);
+        tv.tone(NOTE_A4,100); 
+        delay(100);
+    }
+   
 }
 
 // returns random direction; -1, 0, 1
