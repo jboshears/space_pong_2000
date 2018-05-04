@@ -7,7 +7,6 @@ SPACE PONG 2000
 
 #include <TVout.h>
 #include <fontALL.h>
-#include <Tone.h>
 #include <elapsedMillis.h>
 #include "astronaut.h"   // astronaut bitmap for opening screen
 
@@ -23,6 +22,32 @@ const byte BALL_SIZE = 1;
 // vortex size
 const byte VORTEX_SIZE = 4;
 
+// musical notes and durations
+#define F3  174.61
+#define A4  440.00
+#define B4  493.88
+#define C4  261.63
+#define Db4 277.18
+#define D4  293.66
+#define Eb4 311.13
+#define E4  329.63
+#define F4  349.23
+#define Gb4 369.99
+#define G4  392.00
+#define Ab4 415.30
+#define LA4 440.00
+#define Bb4 466.16
+#define B4  493.88
+#define C5  523.25
+
+// DURATION OF THE NOTES 
+#define BPM 78
+#define Q 60000/BPM
+#define H 2*Q
+#define E Q/2
+#define S Q/4
+#define W 4*Q
+
 // ----------------------------------------------------------------
 // variables
 // ----------------------------------------------------------------
@@ -30,6 +55,8 @@ const byte VORTEX_SIZE = 4;
 TVout tv;
 
 typedef struct {
+    int paddlePin;
+    int buttonPin;
     String initials;
     int score;
 } Player;
@@ -38,21 +65,19 @@ Player player1;
 Player player2;
 
 typedef struct {
-    byte x;    // x coordinate
-    byte y;    // y coordinate
-    byte dx;   // direction on the X axis
-    byte dy;   // direction on the Y axis
-} Ball;
+    int x;    // x coordinate
+    int y;    // y coordinate
+    int dx;   // direction on the X axis
+    int dy;   // direction on the Y axis
+} Sphere;
 
-Ball ball;
-Ball vortex;
+Sphere ball;
+Sphere vortex;
 
 int timeLeft;
 
 elapsedMillis timeElapsed;
 // ----------------------------------------------------------------
-
-
 
 // setup method
 void setup() {
@@ -60,12 +85,19 @@ void setup() {
     // initialize screen to NTSC 128w x 96h
     tv.begin(NTSC, 128, 96);
 
-    // randomize the seed; hopefully analog pin 0 is floating
-    randomSeed(analogRead(0));
+    // initialize the pins
+    player2.paddlePin = 1;  // analog pin 1
+    player2.buttonPin = 2;  // digital pin 2
+
+    // set the button pins to INPUT_PULLUP mode
+    pinMode(player1.buttonPin, INPUT_PULLUP);
+
+    // DON'T CONNECT ANALOG PIN 5!! 
+    //  it needs to float for random seed generation
+    randomSeed(analogRead(5));
     
     // show the intro screen
-    // TODO introScreen(); 
-    initializeGame();
+    introScreen(); 
 
 }
 
@@ -174,16 +206,19 @@ void initializeGame() {
 // setup the game ball
 void resetBall() {
 
+    // center ball for now so it drops into the middle
     ball.x = 64;
     ball.y = 52;
 
+    // give the ball an intial heading on the x axis
+    //  should be 1 or -1
+    ball.dx = 0;
     while (ball.dx == 0) {
         ball.dx = getRandomDirection();
     }
 
-    while (ball.dy == 0) {
-        ball.dy = getRandomDirection();
-    }
+    ball.dy = getRandomDirection();
+    ball.dy *= random(1,4);
 
     dropBall();
 }
@@ -244,7 +279,7 @@ void moveBall() {
     // TODO for now, bounce off the walls
     if (ball.y == 93 || ball.y == 11) {
         ball.dy *= -1;
-        bounceSound();
+        paddleBounceSound();
     }
 
     // player 1 scored
@@ -271,14 +306,28 @@ void moveBall() {
         flashVortex();
 
         // mess with the ball headings and location
-        ball.dx = getRandomDirection();
+        // x can't be 0
+        ball.dx = 0;
+        while (ball.dx == 0) {
+            ball.dx = getRandomDirection();
+        }
+    
         ball.dy = getRandomDirection();
+        ball.dy *= random(1,4);
         
     }
 
     // update position
     ball.x += ball.dx;
     ball.y += ball.dy;
+
+    // Keep the ball within the threshold
+    // don't let x go above 125 or below 1
+    // don't let y go above 93 or below 11
+    if (ball.x > 125) { ball.x = 125; }
+    if (ball.x < 1)   { ball.x = 1; }
+    if (ball.y > 93)  { ball.y = 93; }
+    if (ball.y < 11)  { ball.y = 11; }
 
 }
 
@@ -299,6 +348,11 @@ void dropBall() {
         delay(20);
         tv.draw_circle(ball.x, ball.y, radius, BLACK, BLACK);
     }
+    
+    // drop the ball randomly in the vortex so the trajectories differ
+    ball.x = random(60,69);
+    ball.y = random(48,57);
+
     
 }
 
@@ -333,99 +387,259 @@ void flashVortex() {
 // play theme
 void playTitleTheme() {
 
-	 // notes in the melody:
-	int melody[] = {
-		NOTE_A5,
-		NOTE_GS5,
-		NOTE_FS5,
-		NOTE_E5,
-		NOTE_A5,
-		NOTE_GS5,
-		NOTE_FS5,
-		NOTE_E5,
-		NOTE_A5,
-		NOTE_GS5,
-		NOTE_A5,
-		NOTE_AS5,
-		NOTE_B5,
-		NOTE_GS5,
-		NOTE_FS5,
-		NOTE_E5
-	};
+    return; // todo remove
+    
+    //Measure 1
+    tv.tone(C4,Q);         //middle C m1b1
+    delay(1+Q);            //delay duration should always be 1 ms more than the note in order to separate them.
+    delay (1+E);           //rest  m1 first half of beat 2
+    tv.tone(G4,S);         //G 16th on and of beat 2
+    delay(1+S);
+    tv.tone(G4,S);         //G 16th on ah of beat two
+    delay(1+S);
+    tv.tone(G4,Q);      //G quarter note on beat 3
+    delay(1+Q);
+    tv.tone(F4,Q);      //F quarter note on beat 4
+    delay(1+Q);
+    
+    //Measure 2  
+    tv.tone(C4,Q);      //middle C m2b1
+    delay(1+Q);         //delay duration should always be 1 ms more than the note in order to separate them.
+    delay (1+E);         //rest  m1 first half of beat 2
+    tv.tone(G4,S);      //G 16th on and of beat 2
+    delay(1+S);
+    tv.tone(G4,S);      //G 16th on ah of beat two
+    delay(1+S);
+    tv.tone(G4,Q);      //G quarter note on beat 3
+    delay(1+Q);
+    tv.tone(F4,Q);      //F quarter note on beat 4
+    delay(1+Q);
+    
+    //Measure 3
+    tv.tone(C4,Q);      //middle C m3b1
+    delay(1+Q);         //delay duration should always be 1 ms more than the note in order to separate them.
+    delay (1+E);         //rest  m1 first half of beat 2
+    tv.tone(G4,S);      //G 16th on and of beat 2
+    delay(1+S);
+    tv.tone(G4,S);      //G 16th on ah of beat two
+    delay(1+S);
+    tv.tone(G4,Q);      //G quarter note on beat 3
+    delay(1+Q);
+    tv.tone(F4,Q);      //F quarter note on beat 4
+    delay(1+Q);
+    
+    //Measure 4
+    tv.tone(C4,Q);      //middle C m4b1
+    delay(1+Q);         //delay duration should always be 1 ms more than the note in order to separate them.
+    delay (1+E);         //rest  m1 first half of beat 2
+    tv.tone(G4,S);      //G 16th on and of beat 2
+    delay(1+S);
+    tv.tone(G4,S);      //G 16th on ah of beat two
+    delay(1+S);
+    tv.tone(G4,Q);      //G quarter note on beat 3
+    delay(1+Q);
+    tv.tone(F4,Q);      //F quarter note on beat 4
+    delay(1+Q);
+    
+    //Measure 5 Beginning of trio section
+    tv.tone(G4,E);      //G on first 8th note 
+    delay(1+E);
+    tv.tone(E4,E);      //E on second 8th note
+    delay(1+E);
+    tv.tone(G4,E);
+    delay(1+E);
+    tv.tone(E4,E);
+    delay(1+E);
+    tv.tone(G4,E);
+    delay(1+E);
+    tv.tone(E4,E);
+    delay(1+E);
+    tv.tone(G4,E);
+    delay(1+E);
+    tv.tone(E4,E);
+    delay(1+E);
 
-	// iterate over the notes of the melody:
-	for (int thisNote = 0; thisNote < 16; thisNote++) {
+     //Measure 6
+    tv.tone(F4,E);      //F on first 8th note
+    delay(1+E);
+    tv.tone(D4,E);      //D on second 8th note
+    delay(1+E);
+    tv.tone(F4,E);
+    delay(1+E);
+    tv.tone(D4,E);
+    delay(1+E);
+    tv.tone(F4,E);
+    delay(1+E);
+    tv.tone(D4,E);
+    delay(1+E);
+    tv.tone(F4,E);
+    delay(1+E);
+    tv.tone(D4,E);
+    delay(1+E);
 
-		// to calculate the note duration, take one second 
-		// divided by the note type.
-		//e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-		int noteDuration = 1000/2;
-		tv.tone(melody[thisNote], noteDuration);
-		
-		//pause for the note's duration plus 30 ms:   	
-     	delay(noteDuration + 30);
-    	
-	}
+    //Measure 7 
+    tv.tone(G4,E);      //Repeat of measure 5
+    delay(1+E);
+    tv.tone(E4,E);
+    delay(1+E);
+    tv.tone(G4,E);
+    delay(1+E);
+    tv.tone(E4,E);
+    delay(1+E);
+    tv.tone(G4,E);
+    delay(1+E);
+    tv.tone(E4,E);
+    delay(1+E);
+    tv.tone(G4,E);
+    delay(1+E);
+    tv.tone(E4,E);
+    delay(1+E);
+    
+    //Measure 8
+    tv.tone(F4,E);      //Repeat of meaure 6
+    delay(1+E);
+    tv.tone(D4,E);
+    delay(1+E);
+    tv.tone(F4,E);
+    delay(1+E);
+    tv.tone(D4,E);
+    delay(1+E);
+    tv.tone(F4,E);
+    delay(1+E);
+    tv.tone(D4,E);
+    delay(1+E);
+    tv.tone(F4,E);
+    delay(1+E);
+    tv.tone(D4,E);
+    delay(1+E);    
+
+    //Measure 1
+    tv.tone(C4,Q);         //middle C m1b1
+    delay(1+Q);            //delay duration should always be 1 ms more than the note in order to separate them.
+    delay (1+E);           //rest  m1 first half of beat 2
+    tv.tone(G4,S);         //G 16th on and of beat 2
+    delay(1+S);
+    tv.tone(G4,S);         //G 16th on ah of beat two
+    delay(1+S);
+    tv.tone(G4,Q);      //G quarter note on beat 3
+    delay(1+Q);
+    tv.tone(F4,Q);      //F quarter note on beat 4
+    delay(1+Q);
+    
+    //Measure 2  
+    tv.tone(C4,Q);      //middle C m2b1
+    delay(1+Q);         //delay duration should always be 1 ms more than the note in order to separate them.
+    delay (1+E);         //rest  m1 first half of beat 2
+    tv.tone(G4,S);      //G 16th on and of beat 2
+    delay(1+S);
+    tv.tone(G4,S);      //G 16th on ah of beat two
+    delay(1+S);
+    tv.tone(G4,Q);      //G quarter note on beat 3
+    delay(1+Q);
+    tv.tone(F4,Q);      //F quarter note on beat 4
+    delay(1+Q);
 
 }
 
 // ball bounce on wall sound
-void bounceSound() {
-    tv.tone(NOTE_C4,20);
+void wallBounceSound() {   
+    tv.tone(E4,20);  
+}
+
+// ball bounce on paddle sound
+void paddleBounceSound() {   
+    tv.tone(Gb4,20);
+}
+
+// end of game theme
+void endGameTheme() {
+    
+    tv.tone(G4,E);        //G on first 8th note 
+    delay(1+E);
+    tv.tone(E4,E);       //E on second 8th note
+    delay(1+E);
+    tv.tone(G4,E);
+    delay(1+E);
+    tv.tone(E4,E);
+    delay(1+E);
+    tv.tone(G4,E);
+    delay(1+E);
+    tv.tone(E4,E);
+    delay(1+E);
+    tv.tone(G4,E);
+    delay(1+E);
+    tv.tone(E4,E);
+    delay(1+E);
+    
+    //Measure 6
+    tv.tone(F4,E);       //F on first 8th note
+    delay(1+E);
+    tv.tone(D4,E);       //D on second 8th note
+    delay(1+E);
+    tv.tone(F4,E);
+    delay(1+E);
+    tv.tone(D4,E);
+    delay(1+E);
+    tv.tone(F4,E);
+    delay(1+E);
+    tv.tone(D4,E);
+    delay(1+E);
+    tv.tone(F4,E);
+    delay(1+E);
+    tv.tone(D4,E);
+    delay(1+E);
+
 }
 
 // vortexSound
 void vortexSound() {
-    tv.tone(NOTE_F3,100); 
+    tv.tone(F3,100); 
 }
 
 // score sound
 void scoreSound(byte player) {
 
     if (player == 1) {
-        tv.tone(NOTE_A4,100);
+        tv.tone(A4,100);
         delay(100); 
-        tv.tone(NOTE_B4,100);
+        tv.tone(B4,100);
         delay(100);
-        tv.tone(NOTE_C4,100);
+        tv.tone(C4,100);
         delay(100);
-        tv.tone(NOTE_D4,100);
+        tv.tone(D4,100);
         delay(100);
-        tv.tone(NOTE_E4,100);
+        tv.tone(E4,100);
         delay(100);
     }
     else {
-        tv.tone(NOTE_E4,100);
+        tv.tone(E4,100);
         delay(100); 
-        tv.tone(NOTE_D4,100); 
+        tv.tone(D4,100); 
         delay(100);
-        tv.tone(NOTE_C4,100); 
+        tv.tone(C4,100); 
         delay(100);
-        tv.tone(NOTE_B4,100); 
+        tv.tone(B4,100); 
         delay(100);
-        tv.tone(NOTE_A4,100); 
+        tv.tone(A4,100); 
         delay(100);
     }
    
 }
 
 // returns random direction; -1, 0, 1
-byte getRandomDirection() {
+int getRandomDirection() {
 
-    byte initialX = random(0, 3);
-    byte direction;
+    int direction = random(1, 4);
 
-    if (initialX == 0) {
-        direction = -1;
+    if (direction == 1) {
+        return 1;
     }
-    else if (initialX == 1) {
-        direction = 1;
+    else if (direction == 2) {
+        return -1;
     }
     else {
-        direction = 0;
+        return 0;
     }
-
-    return direction;
     
 }
 
