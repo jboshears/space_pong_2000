@@ -11,16 +11,16 @@ SPACE PONG 2000
 #include "astronaut.h"   // astronaut bitmap for opening screen
 
 // ----------------------------------------------------------------
-// constants
+// defined values
 // ----------------------------------------------------------------
 // game length in seconds
-const int GAME_LENGTH = 180;
+#define GAME_LENGTH 180
 
 // ball size in pixels
-const byte BALL_SIZE = 1;
+#define BALL_SIZE 1
 
 // vortex size
-const byte VORTEX_SIZE = 4;
+#define VORTEX_SIZE 4
 
 // musical notes and durations
 #define F3  174.61
@@ -75,7 +75,6 @@ Sphere ball;
 Sphere vortex;
 
 int timeLeft;
-
 elapsedMillis timeElapsed;
 // ----------------------------------------------------------------
 
@@ -114,18 +113,14 @@ void loop() {
 
     // update game clock
     if (timeElapsed > 1000) {
-        updateTimer(timeLeft--);
+        timeLeft--;
+        if (timeLeft == -1) { timeLeft = 0; }
+        updateTimer(timeLeft);
         timeElapsed = 0;
     }
 
-    // game over routine
-    if (timeLeft == 0) {
-        // todo
-        introScreen();
-    }
-
-    // 20ms delay
-    delay(30); 
+    // 25ms delay
+    delay(25); 
 
 }
 
@@ -218,7 +213,7 @@ void resetBall() {
     }
 
     ball.dy = getRandomDirection();
-    ball.dy *= random(1,4);
+    ball.dy *= random(1,3);
 
     dropBall();
 }
@@ -274,12 +269,11 @@ void updateScore(byte player, int score) {
 void moveBall() {  
 
     // TODO paddle detection
-    // TODO detect scoring
 
     // TODO for now, bounce off the walls
     if (ball.y == 93 || ball.y == 11) {
         ball.dy *= -1;
-        paddleBounceSound();
+        wallBounceSound();
     }
 
     // player 1 scored
@@ -287,6 +281,7 @@ void moveBall() {
         player1.score++;
         updateScore(1, player1.score);
         scoreSound(1);
+        checkForGameOver();
         resetBall();
     }
 
@@ -295,15 +290,20 @@ void moveBall() {
         player2.score++;
         updateScore(2, player2.score);
         scoreSound(2);
+        checkForGameOver();
         resetBall();
     }
     
     // is the ball in the vortex?
     if ( (pow(vortex.x - ball.x, 2)  + pow(vortex.y - ball.y, 2)) <= pow(VORTEX_SIZE, 2) ) {
         
-        // it is! ominous tone
+        // it is! ominous tone and flash
         vortexSound();
         flashVortex();
+
+        // time increases in the vortex
+        //  this seemed like a good idea; but the game timer went up faster than it counted down
+        // updateTimer(timeLeft++);
 
         // mess with the ball headings and location
         // x can't be 0
@@ -313,7 +313,7 @@ void moveBall() {
         }
     
         ball.dy = getRandomDirection();
-        ball.dy *= random(1,4);
+        ball.dy *= random(1,3);
         
     }
 
@@ -321,14 +321,24 @@ void moveBall() {
     ball.x += ball.dx;
     ball.y += ball.dy;
 
-    // Keep the ball within the threshold
-    // don't let x go above 125 or below 1
-    // don't let y go above 93 or below 11
+    // Keep the ball within the threshold of the playing field
+    //  don't let x go above 125 or below 1
+    //  don't let y go above 93 or below 11
     if (ball.x > 125) { ball.x = 125; }
     if (ball.x < 1)   { ball.x = 1; }
     if (ball.y > 93)  { ball.y = 93; }
     if (ball.y < 11)  { ball.y = 11; }
 
+}
+
+// check and handle game over
+void checkForGameOver() {
+
+    if (timeLeft == 0) {
+        // todo
+        introScreen();
+    }
+    
 }
 
 // draw the ball at the current location
@@ -350,8 +360,8 @@ void dropBall() {
     }
     
     // drop the ball randomly in the vortex so the trajectories differ
-    ball.x = random(60,69);
-    ball.y = random(48,57);
+    ball.x = random(61,67);
+    ball.y = random(49,55);
 
     
 }
@@ -387,8 +397,8 @@ void flashVortex() {
 // play theme
 void playTitleTheme() {
 
-    return; // todo remove
-    
+return; // todo
+
     //Measure 1
     tv.tone(C4,Q);         //middle C m1b1
     delay(1+Q);            //delay duration should always be 1 ms more than the note in order to separate them.
@@ -512,33 +522,7 @@ void playTitleTheme() {
     delay(1+E);
     tv.tone(D4,E);
     delay(1+E);    
-
-    //Measure 1
-    tv.tone(C4,Q);         //middle C m1b1
-    delay(1+Q);            //delay duration should always be 1 ms more than the note in order to separate them.
-    delay (1+E);           //rest  m1 first half of beat 2
-    tv.tone(G4,S);         //G 16th on and of beat 2
-    delay(1+S);
-    tv.tone(G4,S);         //G 16th on ah of beat two
-    delay(1+S);
-    tv.tone(G4,Q);      //G quarter note on beat 3
-    delay(1+Q);
-    tv.tone(F4,Q);      //F quarter note on beat 4
-    delay(1+Q);
     
-    //Measure 2  
-    tv.tone(C4,Q);      //middle C m2b1
-    delay(1+Q);         //delay duration should always be 1 ms more than the note in order to separate them.
-    delay (1+E);         //rest  m1 first half of beat 2
-    tv.tone(G4,S);      //G 16th on and of beat 2
-    delay(1+S);
-    tv.tone(G4,S);      //G 16th on ah of beat two
-    delay(1+S);
-    tv.tone(G4,Q);      //G quarter note on beat 3
-    delay(1+Q);
-    tv.tone(F4,Q);      //F quarter note on beat 4
-    delay(1+Q);
-
 }
 
 // ball bounce on wall sound
