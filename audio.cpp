@@ -1,33 +1,11 @@
-// musical notes and durations
-#define F3  174.61
-#define A4  440.00
-#define B4  493.88
-#define C4  261.63
-#define Db4 277.18
-#define D4  293.66
-#define Eb4 311.13
-#define E4  329.63
-#define F4  349.23
-#define Gb4 369.99
-#define G4  392.00
-#define Ab4 415.30
-#define LA4 440.00
-#define Bb4 466.16
-#define B4  493.88
-#define C5  523.25
+#include "audio.h"
+#include <Arduino.h>
+#include <TVout.h>
 
-// DURATION OF THE NOTES 
-#define BPM 78
-#define Q 60000/BPM
-#define H 2*Q
-#define E Q/2
-#define S Q/4
-#define W 4*Q
+extern TVout tv;
 
 // play theme
 void playTitleTheme() {
-
-//return; // todo
 
     //Measure 1
     tv.tone(C4,Q);         //middle C m1b1
@@ -155,16 +133,6 @@ void playTitleTheme() {
     
 }
 
-// ball bounce on wall sound
-void wallBounceSound() {   
-    tv.tone(E4,20);  
-}
-
-// ball bounce on paddle sound
-void paddleBounceSound() {   
-    tv.tone(Gb4,20);
-}
-
 // end of game theme
 void endGameTheme() {
     
@@ -203,6 +171,23 @@ void endGameTheme() {
     tv.tone(D4,E);
     delay(1+E);
 
+}
+
+// TODO: new high score melody
+void newHighScoreMelody() {
+
+    // TODO
+    
+}
+
+// ball bounce on wall sound
+void wallBounceSound() {   
+    tv.tone(E4,20);  
+}
+
+// ball bounce on paddle sound
+void paddleBounceSound() {   
+    tv.tone(Gb4,20);
 }
 
 // vortexSound

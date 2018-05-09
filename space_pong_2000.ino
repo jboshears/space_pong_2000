@@ -8,19 +8,14 @@ SPACE PONG 2000
 #include <TVout.h>
 #include <fontALL.h>
 #include <elapsedMillis.h>
-#include "astronaut.h"   // astronaut bitmap for opening screen
+#include "graphics.h"   // graphics library
+#include "audio.h"      // sound library
 
 // ----------------------------------------------------------------
 // defined values
 // ----------------------------------------------------------------
 // game length in seconds
 #define GAME_LENGTH 180
-
-// ball size in pixels
-#define BALL_SIZE 1
-
-// vortex size
-#define VORTEX_SIZE 4
 
 // ----------------------------------------------------------------
 // variables
@@ -78,12 +73,12 @@ void setup() {
 void loop() {
 
     // draw the vortex
-    drawVortex();
+    drawVortex(vortex.x, vortex.y);
 
     // update ball position
-    eraseBall();
+    eraseBall(ball.x, ball.y);
     moveBall();
-    drawBall();
+    drawBall(ball.x, ball.y);
 
     // update game clock
     if (timeElapsed > 1000) {
@@ -114,7 +109,7 @@ void introScreen() {
     //tv.draw_rect(0,12,127,66,WHITE);
     
     // astronaut bitmap
-    tv.bitmap(31, 14, astronaut);
+    drawAstronaut();
 
     // 33 character string; 4 pixels width per character
     // uses 90 pixels; to center @ 128 pixels wide start at 15
@@ -168,7 +163,7 @@ void initializeGame() {
     resetBall();
 
     // draw the the vortex
-    drawVortex();
+    drawVortex(vortex.x, vortex.y);
 
 }
 
@@ -246,7 +241,7 @@ void moveBall() {
         
         // it is! ominous tone and flash
         vortexSound();
-        flashVortex();
+        flashVortex(vortex.x, vortex.y);
 
         // time increases in the vortex
         //  this seemed like a good idea; but the game timer went up faster than it counted down
@@ -288,8 +283,6 @@ void checkForGameOver() {
     
 }
 
-
-
 // drop the ball onto the field
 void dropBall() {
 
@@ -308,24 +301,21 @@ void dropBall() {
     
 }
 
+// returns random direction; -1, 0, 1
+int getRandomDirection() {
 
+    int direction = random(1, 4);
 
-
-
-// flash the vortex
-void flashVortex() {
-    
-    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, WHITE);
-    delay(20);
-    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, BLACK);
-    delay(20);
-    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, WHITE);
-    delay(20);
-    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, BLACK);
-    delay(20);
-    tv.draw_circle(vortex.x, vortex.y, VORTEX_SIZE, WHITE, WHITE);
+    if (direction == 1) {
+        return 1;
+    }
+    else if (direction == 2) {
+        return -1;
+    }
+    else {
+        return 0;
+    }
     
 }
-
 
 
