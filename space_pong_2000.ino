@@ -8,6 +8,7 @@ SPACE PONG 2000
 #include <TVout.h>
 #include <fontALL.h>
 #include <elapsedMillis.h>
+#include <Bounce.h>
 #include "graphics.h"   // graphics library
 #include "audio.h"      // sound library
 
@@ -17,6 +18,11 @@ SPACE PONG 2000
 // game length in seconds
 #define GAME_LENGTH 180
 
+#define PLAYER1_BTN 4
+#define PLAYER2_BTN 2
+#define PLAYER1_POT 5
+#define PLAYER2_POT 1
+
 // ----------------------------------------------------------------
 // variables
 // ----------------------------------------------------------------
@@ -24,8 +30,8 @@ SPACE PONG 2000
 TVout tv;
 
 typedef struct {
-    int paddlePin;
-    int buttonPin;
+    int  paddleLocation;
+    int  oldPaddleLocation;
     String initials;
     int score;
 } Player;
@@ -40,6 +46,9 @@ typedef struct {
     int dy;   // direction on the Y axis
 } Sphere;
 
+Bounce button1Bounce = Bounce(PLAYER1_BTN, 100);
+Bounce button2Bounce = Bounce(PLAYER2_BTN, 100);
+
 Sphere ball;
 Sphere vortex;
 
@@ -52,17 +61,14 @@ void setup() {
 
     // initialize screen to NTSC 128w x 96h
     tv.begin(NTSC, 128, 96);
-
-    // initialize the pins
-    player2.paddlePin = 1;  // analog pin 1
-    player2.buttonPin = 2;  // digital pin 2
-
-    // set the button pins to INPUT_PULLUP mode
-    pinMode(player1.buttonPin, INPUT_PULLUP);
-
+   
     // DON'T CONNECT ANALOG PIN 5!! 
     //  it needs to float for random seed generation
     randomSeed(analogRead(5));
+
+    // set the button pins to INPUT_PULLUP mode
+    pinMode(PLAYER1_BTN, INPUT_PULLUP);
+    pinMode(PLAYER2_BTN, INPUT_PULLUP);
     
     // show the intro screen
     introScreen(); 
@@ -75,6 +81,18 @@ void loop() {
     // draw the vortex
     drawVortex(vortex.x, vortex.y);
 
+    // erase paddles, get the location, and redraw them
+    erasePaddles(player1.paddleLocation, player2.paddleLocation);
+    
+    player1.paddleLocation = map(analogRead(PLAYER1_POT), 515, 1023, 11, 94 - PADDLE_HEIGHT);
+    player2.paddleLocation = map(analogRead(PLAYER2_POT), 515, 1023, 11, 94 - PADDLE_HEIGHT); 
+    
+    // don't let the paddle location go below 11
+    if (player1.paddleLocation < 11) { player1.paddleLocation = 11; }
+    if (player2.paddleLocation < 11) { player2.paddleLocation = 11; }
+    
+    drawPaddles(player1.paddleLocation, player2.paddleLocation);
+
     // update ball position
     eraseBall(ball.x, ball.y);
     moveBall();
@@ -83,7 +101,7 @@ void loop() {
     // update game clock
     if (timeElapsed > 1000) {
         timeLeft--;
-        if (timeLeft == -1) { timeLeft = 0; }
+        if (timeLeft < 0) { timeLeft = 0; }
         updateTimer(timeLeft);
         timeElapsed = 0;
     }
@@ -133,23 +151,23 @@ void initializeGame() {
 
     // clear the screen
     tv.clear_screen();
-    
+        
     // get the player names
     getPlayerNames();
    
     // pong field; down 10 pixels; then 127 wide by 85 high
     tv.draw_rect(0,10,127,85,WHITE,BLACK);
     
-    tv.select_font(font4x6);
+    tv.select_font(font6x8);
         
     //player 1 score
-    tv.print(3,2,player1.initials.c_str());
-    tv.print(15,2,":");
+    tv.print(1,2,player1.initials.c_str());
+    tv.print(19,2,":");
     updateScore(1,0);
 
     //player 3 score
-    tv.print(95,2,player2.initials.c_str());
-    tv.print(107,2,":");
+    tv.print(85,2,player2.initials.c_str());
+    tv.print(103,2,":");
     updateScore(2,0);
 
     timeLeft = GAME_LENGTH;
@@ -164,6 +182,14 @@ void initializeGame() {
 
     // draw the the vortex
     drawVortex(vortex.x, vortex.y);
+
+    // initialize the paddles
+    player1.paddleLocation = map(analogRead(PLAYER1_POT), 535, 1023, 11, 94 - PADDLE_HEIGHT);
+    player2.paddleLocation = map(analogRead(PLAYER2_POT), 535, 1023, 11, 94 - PADDLE_HEIGHT);
+    player1.oldPaddleLocation = player1.paddleLocation;
+    player2.oldPaddleLocation = player2.paddleLocation;
+    drawPaddles(player1.paddleLocation, player2.paddleLocation);
+
 
 }
 
@@ -191,33 +217,120 @@ void resetBall() {
 void getPlayerNames() {
 
     tv.select_font(font6x8);
-    tv.print(7,8,"Player 1, initials?");
-    tv.print(54,16,"AAA");
-    player1.initials = "BOB";
+
+    // player 1:
+    player1.initials = "";
     player1.score = 0;
-    
-    tv.print(7,32,"Player 2, initials?");
-    tv.print(54,40,"BBB");
-    player2.initials = "ANN";
+    tv.print(7,8,"Player 1?");
+    tv.print(54,16,"AAA");
+
+    // get char 1
+    while (true) {
+        button1Bounce.update();
+        char c = map(analogRead(PLAYER1_POT), 515, 1023, 65, 90);
+        tv.print(54,16,c);
+        if (button1Bounce.fallingEdge()) {
+            player1.initials += c;
+            break;
+        }
+    }
+
+    // get char 2
+    while (true) {
+        button1Bounce.update();
+        char c = map(analogRead(PLAYER1_POT), 515, 1023, 65, 90);
+        tv.print(60,16,c);
+        if (button1Bounce.fallingEdge()) {
+            player1.initials += c;
+            break;
+        }
+    }
+
+    // get char 3
+    while (true) {
+        button1Bounce.update();
+        char c = map(analogRead(PLAYER1_POT), 515, 1023, 65, 90);
+        tv.print(66,16,c);
+        if (button1Bounce.fallingEdge()) {
+            player1.initials += c;
+            break;
+        }
+    }
+
+    player1.initials += '\0';
+
+    // player 2:
+    player2.initials = "";
     player2.score = 0;
-    
+    tv.print(7,32,"Player 2?");
+    tv.print(54,40,"AAA");
+
+
+    // get char 1
+    while (true) {
+        button2Bounce.update();
+        char c = map(analogRead(PLAYER2_POT), 515, 1023, 65, 90);
+        tv.print(54,40,c);
+        if (button2Bounce.fallingEdge()) {
+            player2.initials += c;
+            break;
+        }
+    }
+
+    // get char 2
+    while (true) {
+        button2Bounce.update();
+        char c = map(analogRead(PLAYER2_POT), 515, 1023, 65, 90);
+        tv.print(60,40,c);
+        if (button2Bounce.fallingEdge()) {
+            player2.initials += c;
+            break;
+        }
+    }
+
+    // get char 3
+    while (true) {
+        button2Bounce.update();
+        char c = map(analogRead(PLAYER2_POT), 515, 1023, 65, 90);
+        tv.print(66,40,c);
+        if (button2Bounce.fallingEdge()) {
+            player2.initials += c;
+            break;
+        }
+    }
+
+    player2.initials += '\0';
+
     delay(1000);
     tv.clear_screen();
-    // todo finish up here.
     
 }
 
 // calculate new ball location
 void moveBall() {  
 
-    // TODO paddle detection
+    // bounced off of paddle 1
+    if ( ball.x == 5 && ball.y >= player1.paddleLocation && ball.y <= player1.paddleLocation + PADDLE_HEIGHT)  {
+        paddleBounceSound();
+        ball.dx *= -1; 
+        ball.dy *= -1; 
+        //ball.dy *= random(1,3);
+    }
 
-    // TODO for now, bounce off the walls
+    // bounced off of paddle 2
+    if ( ball.x == 121 && ball.y >= player2.paddleLocation && ball.y <= player2.paddleLocation + PADDLE_HEIGHT)  {
+        paddleBounceSound();
+        ball.dx *= -1; 
+        ball.dy *= -1; 
+        //ball.dy *= random(1,3);
+    }
+
+    // bounce off the walls
     if (ball.y == 93 || ball.y == 11) {
         ball.dy *= -1;
         wallBounceSound();
     }
-
+    
     // player 1 scored
     if (ball.x == 125) {
         player1.score++;

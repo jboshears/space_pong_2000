@@ -7,6 +7,9 @@ extern TVout tv;
 // play theme
 void playTitleTheme() {
 
+    delay(200);
+    return;
+
     //Measure 1
     tv.tone(C4,Q);         //middle C m1b1
     delay(1+Q);            //delay duration should always be 1 ms more than the note in order to separate them.

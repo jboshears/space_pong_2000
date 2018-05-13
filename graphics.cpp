@@ -93,13 +93,13 @@ void drawVortex(byte x, byte y) {
 void flashVortex(byte x, byte y) {
     
     tv.draw_circle(x, y, VORTEX_SIZE, WHITE, WHITE);
-    delay(20);
+    delay(10);
     tv.draw_circle(x, y, VORTEX_SIZE, WHITE, BLACK);
-    delay(20);
+    delay(10);
     tv.draw_circle(x, y, VORTEX_SIZE, WHITE, WHITE);
-    delay(20);
+    delay(10);
     tv.draw_circle(x, y, VORTEX_SIZE, WHITE, BLACK);
-    delay(20);
+    delay(10);
     tv.draw_circle(x, y, VORTEX_SIZE, WHITE, WHITE);
     
 }
@@ -109,8 +109,8 @@ void updateTimer(int timeLeft) {
     
     char buffer[4];
     sprintf (buffer, "%03d", timeLeft); 
-    tv.select_font(font4x6);
-    tv.print(59, 2, buffer);
+    tv.select_font(font6x8);
+    tv.print(54, 2, buffer);
     
 }
 
@@ -119,14 +119,14 @@ void updateScore(byte player, int score) {
 
     char buffer[4];
     sprintf (buffer, "%03d", score); 
-    tv.select_font(font4x6);
+    tv.select_font(font6x8);
 
     if (player == 1) {
-        tv.print(23, 2, buffer);
+        tv.print(25, 2, buffer);
     }
     
     if (player == 2) {
-        tv.print(115, 2, buffer);
+        tv.print(109, 2, buffer);
     }
 
 }
@@ -135,3 +135,26 @@ void updateScore(byte player, int score) {
 void drawAstronaut() {
     tv.bitmap(31, 14, astronaut);
 }
+
+// draw the paddles
+void drawPaddles(byte player1Location, byte player2Location) {
+
+    // player 1
+    tv.draw_rect(2, player1Location, PADDLE_WIDTH, PADDLE_HEIGHT, WHITE, WHITE); 
+
+    // player 2
+    tv.draw_rect(125-PADDLE_WIDTH, player2Location, PADDLE_WIDTH, PADDLE_HEIGHT, WHITE, WHITE); 
+
+}
+
+// erase the paddles
+void erasePaddles(byte player1Location, byte player2Location) {
+
+    // player 1
+    tv.draw_rect(2, player1Location, PADDLE_WIDTH, PADDLE_HEIGHT, BLACK, BLACK); 
+
+    // player 2
+    tv.draw_rect(125-PADDLE_WIDTH, player2Location, PADDLE_WIDTH, PADDLE_HEIGHT, BLACK, BLACK); 
+
+}
+
