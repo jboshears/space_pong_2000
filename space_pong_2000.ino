@@ -213,6 +213,42 @@ void resetBall() {
     dropBall();
 }
 
+char getLetterFromPot(byte pot, Bounce *bounceObject, byte x, byte y) {
+
+    byte cursorColor = WHITE;
+    byte lowerAsciiRange = 65; // 65 is A
+    byte upperAsciiRange = 91; // 90 is Z
+    
+    while (true) {
+        
+        tv.draw_line(x, y+8, x+6, y+8, cursorColor);
+        
+        if (cursorColor == WHITE) { 
+            cursorColor = BLACK;
+        }
+        else {
+            cursorColor = WHITE;
+        }
+
+        char c = constrain(map(analogRead(pot), 515, 1023, lowerAsciiRange, upperAsciiRange), lowerAsciiRange, upperAsciiRange);
+
+        // translate 91 to 32 (space)
+        if (c == 91) { c = 32; }
+        
+        tv.print(x,y,c);
+        
+        bounceObject->update();
+        if (bounceObject->fallingEdge()) {
+            tv.draw_line(x, y+8, x+6, y+8, BLACK);
+            return c;
+        }
+        
+        delay(250);
+        
+    }   
+    
+}
+
 // get the player names
 void getPlayerNames() {
 
@@ -224,40 +260,10 @@ void getPlayerNames() {
     tv.print(7,8,"Player 1?");
     tv.print(54,16,"AAA");
 
-    // get char 1
-    while (true) {
-        button1Bounce.update();
-        char c = map(analogRead(PLAYER1_POT), 515, 1023, 65, 90);
-        tv.print(54,16,c);
-        if (button1Bounce.fallingEdge()) {
-            player1.initials += c;
-            break;
-        }
-    }
-
-    // get char 2
-    while (true) {
-        button1Bounce.update();
-        char c = map(analogRead(PLAYER1_POT), 515, 1023, 65, 90);
-        tv.print(60,16,c);
-        if (button1Bounce.fallingEdge()) {
-            player1.initials += c;
-            break;
-        }
-    }
-
-    // get char 3
-    while (true) {
-        button1Bounce.update();
-        char c = map(analogRead(PLAYER1_POT), 515, 1023, 65, 90);
-        tv.print(66,16,c);
-        if (button1Bounce.fallingEdge()) {
-            player1.initials += c;
-            break;
-        }
-    }
-
-    player1.initials += '\0';
+    // get initials from pot
+    player1.initials += getLetterFromPot(PLAYER1_POT, &button1Bounce, 54, 16);
+    player1.initials += getLetterFromPot(PLAYER1_POT, &button1Bounce, 60, 16);
+    player1.initials += getLetterFromPot(PLAYER1_POT, &button1Bounce, 66, 16);
 
     // player 2:
     player2.initials = "";
@@ -265,42 +271,11 @@ void getPlayerNames() {
     tv.print(7,32,"Player 2?");
     tv.print(54,40,"AAA");
 
-
-    // get char 1
-    while (true) {
-        button2Bounce.update();
-        char c = map(analogRead(PLAYER2_POT), 515, 1023, 65, 90);
-        tv.print(54,40,c);
-        if (button2Bounce.fallingEdge()) {
-            player2.initials += c;
-            break;
-        }
-    }
-
-    // get char 2
-    while (true) {
-        button2Bounce.update();
-        char c = map(analogRead(PLAYER2_POT), 515, 1023, 65, 90);
-        tv.print(60,40,c);
-        if (button2Bounce.fallingEdge()) {
-            player2.initials += c;
-            break;
-        }
-    }
-
-    // get char 3
-    while (true) {
-        button2Bounce.update();
-        char c = map(analogRead(PLAYER2_POT), 515, 1023, 65, 90);
-        tv.print(66,40,c);
-        if (button2Bounce.fallingEdge()) {
-            player2.initials += c;
-            break;
-        }
-    }
-
-    player2.initials += '\0';
-
+     // get initials from pot
+    player2.initials += getLetterFromPot(PLAYER2_POT, &button2Bounce, 54, 40);
+    player2.initials += getLetterFromPot(PLAYER2_POT, &button2Bounce, 60, 40);
+    player2.initials += getLetterFromPot(PLAYER2_POT, &button2Bounce, 66, 40);
+    
     delay(1000);
     tv.clear_screen();
     
