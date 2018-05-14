@@ -4,6 +4,7 @@
 #define AUDIO
 
 // musical notes and durations
+#define REST 0
 #define F3  174.61
 #define A4  440.00
 #define B4  493.88

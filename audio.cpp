@@ -7,134 +7,38 @@ extern TVout tv;
 // play theme
 void playTitleTheme() {
 
-    //Measure 1
-    tv.tone(C4,Q);         //middle C m1b1
-    delay(1+Q);            //delay duration should always be 1 ms more than the note in order to separate them.
-    delay (1+E);           //rest  m1 first half of beat 2
-    tv.tone(G4,S);         //G 16th on and of beat 2
-    delay(1+S);
-    tv.tone(G4,S);         //G 16th on ah of beat two
-    delay(1+S);
-    tv.tone(G4,Q);      //G quarter note on beat 3
-    delay(1+Q);
-    tv.tone(F4,Q);      //F quarter note on beat 4
-    delay(1+Q);
+    int count = 68;
     
-    //Measure 2  
-    tv.tone(C4,Q);      //middle C m2b1
-    delay(1+Q);         //delay duration should always be 1 ms more than the note in order to separate them.
-    delay (1+E);         //rest  m1 first half of beat 2
-    tv.tone(G4,S);      //G 16th on and of beat 2
-    delay(1+S);
-    tv.tone(G4,S);      //G 16th on ah of beat two
-    delay(1+S);
-    tv.tone(G4,Q);      //G quarter note on beat 3
-    delay(1+Q);
-    tv.tone(F4,Q);      //F quarter note on beat 4
-    delay(1+Q);
-    
-    //Measure 3
-    tv.tone(C4,Q);      //middle C m3b1
-    delay(1+Q);         //delay duration should always be 1 ms more than the note in order to separate them.
-    delay (1+E);         //rest  m1 first half of beat 2
-    tv.tone(G4,S);      //G 16th on and of beat 2
-    delay(1+S);
-    tv.tone(G4,S);      //G 16th on ah of beat two
-    delay(1+S);
-    tv.tone(G4,Q);      //G quarter note on beat 3
-    delay(1+Q);
-    tv.tone(F4,Q);      //F quarter note on beat 4
-    delay(1+Q);
+    float note[count] = 
+        {C4, REST, G4, G4, G4, F4,          // measure 1
+         C4, REST, G4, G4, G4, F4,          // measure 2; repeat of measure 1
+         C4, REST, G4, G4, G4, F4,          // measure 3; repeat of measure 1
+         C4, REST, G4, G4, G4, F4,          // measure 4; repeat of measure 1
+         G4, E4, G4, E4, G4, E4, G4, E4,    // measure 5
+         F4, D4, F4, D4, F4, D4, F4, D4,    // measure 6
+         G4, E4, G4, E4, G4, E4, G4, E4,    // measure 7; repeat of measure 5
+         F4, D4, F4, D4, F4, D4, F4, D4,    // measure 8; repeat of measure 6
+         C4, REST, G4, G4, G4, F4,          // measure 9; repeat of measure 1
+         C4, REST, G4, G4, G4, F4};         // measure 10; repeat of measure 1
+         
+    float duration[count] = 
+        {Q, E, S, S, Q, Q,          // measure 1
+         Q, E, S, S, Q, Q,          // measure 2; repeat of measure 1
+         Q, E, S, S, Q, Q,          // measure 3; repeat of measure 1
+         Q, E, S, S, Q, Q,          // measure 4; repeat of measure 1
+         E, E, E, E, E, E, E, E,    // measure 5
+         E, E, E, E, E, E, E, E,    // measure 6
+         E, E, E, E, E, E, E, E,    // measure 7; repeat of measure 5
+         E, E, E, E, E, E, E, E,    // measure 8; repeat of measure 6
+         Q, E, S, S, Q, Q,          // measure 9; repeat of measure 1
+         Q, E, S, S, Q, Q};         // measure 10; repeat of measure 1
+         
+    for (int i = 0; i < count; i++) {
+        tv.tone(note[i], duration[i]);
+        delay(duration[i]+1);   
+        // TODO; check for button press & exit if detected
+    }
 
-    //Measure 4
-    tv.tone(C4,Q);      //middle C m4b1
-    delay(1+Q);         //delay duration should always be 1 ms more than the note in order to separate them.
-    delay (1+E);         //rest  m1 first half of beat 2
-    tv.tone(G4,S);      //G 16th on and of beat 2
-    delay(1+S);
-    tv.tone(G4,S);      //G 16th on ah of beat two
-    delay(1+S);
-    tv.tone(G4,Q);      //G quarter note on beat 3
-    delay(1+Q);
-    tv.tone(F4,Q);      //F quarter note on beat 4
-    delay(1+Q);
-    
-    //Measure 5 Beginning of trio section
-    tv.tone(G4,E);      //G on first 8th note 
-    delay(1+E);
-    tv.tone(E4,E);      //E on second 8th note
-    delay(1+E);
-    tv.tone(G4,E);
-    delay(1+E);
-    tv.tone(E4,E);
-    delay(1+E);
-    tv.tone(G4,E);
-    delay(1+E);
-    tv.tone(E4,E);
-    delay(1+E);
-    tv.tone(G4,E);
-    delay(1+E);
-    tv.tone(E4,E);
-    delay(1+E);
-
-     //Measure 6
-    tv.tone(F4,E);      //F on first 8th note
-    delay(1+E);
-    tv.tone(D4,E);      //D on second 8th note
-    delay(1+E);
-    tv.tone(F4,E);
-    delay(1+E);
-    tv.tone(D4,E);
-    delay(1+E);
-    tv.tone(F4,E);
-    delay(1+E);
-    tv.tone(D4,E);
-    delay(1+E);
-    tv.tone(F4,E);
-    delay(1+E);
-    tv.tone(D4,E);
-    delay(1+E);
-
-    return;
-
-    // drop these for brevity?
-
-    //Measure 7 
-    tv.tone(G4,E);      //Repeat of measure 5
-    delay(1+E);
-    tv.tone(E4,E);
-    delay(1+E);
-    tv.tone(G4,E);
-    delay(1+E);
-    tv.tone(E4,E);
-    delay(1+E);
-    tv.tone(G4,E);
-    delay(1+E);
-    tv.tone(E4,E);
-    delay(1+E);
-    tv.tone(G4,E);
-    delay(1+E);
-    tv.tone(E4,E);
-    delay(1+E);
-    
-    //Measure 8
-    tv.tone(F4,E);      //Repeat of meaure 6
-    delay(1+E);
-    tv.tone(D4,E);
-    delay(1+E);
-    tv.tone(F4,E);
-    delay(1+E);
-    tv.tone(D4,E);
-    delay(1+E);
-    tv.tone(F4,E);
-    delay(1+E);
-    tv.tone(D4,E);
-    delay(1+E);
-    tv.tone(F4,E);
-    delay(1+E);
-    tv.tone(D4,E);
-    delay(1+E);    
-    
 }
 
 // end of game theme
