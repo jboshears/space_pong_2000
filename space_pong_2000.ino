@@ -177,9 +177,6 @@ void initializeGame() {
     vortex.x = 64;
     vortex.y = 52;
 
-    // initialize the ball location and direction
-    resetBall();
-
     // draw the the vortex
     drawVortex(vortex.x, vortex.y);
 
@@ -189,6 +186,9 @@ void initializeGame() {
     player1.oldPaddleLocation = player1.paddleLocation;
     player2.oldPaddleLocation = player2.paddleLocation;
     drawPaddles(player1.paddleLocation, player2.paddleLocation);
+
+    // initialize the ball location and direction
+    resetBall();
 
 
 }
@@ -423,6 +423,7 @@ void dropBall() {
 
     // pong field; down 10 pixels; then 127 wide by 85 high
     tv.draw_rect(0,10,127,85,WHITE,BLACK);
+    drawPaddles(player1.paddleLocation, player2.paddleLocation);
 
     byte startingRadius = 25;
 
