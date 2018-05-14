@@ -10,47 +10,100 @@ extern Bounce button2Bounce;
 // play theme
 void playTitleTheme() {
 
-    int count = 68;
+    // measure 1 repeats 4 times
+    if (!playMeasure1()) { return; }
+    if (!playMeasure1()) { return; }
+    if (!playMeasure1()) { return; }
+    if (!playMeasure1()) { return; }
+
+    // then 5,6 twice
+    if (!playMeasure5()) { return; }
+    if (!playMeasure6()) { return; }
+    if (!playMeasure5()) { return; }
+    if (!playMeasure6()) { return; }
+
+    // finally, measure 1 two more times
+    if (!playMeasure1()) { return; }
+    if (!playMeasure1()) { return; }
     
-    float note[count] = 
-        {C4, REST, G4, G4, G4, F4,          // measure 1
-         C4, REST, G4, G4, G4, F4,          // measure 2; repeat of measure 1
-         C4, REST, G4, G4, G4, F4,          // measure 3; repeat of measure 1
-         C4, REST, G4, G4, G4, F4,          // measure 4; repeat of measure 1
-         G4, E4, G4, E4, G4, E4, G4, E4,    // measure 5
-         F4, D4, F4, D4, F4, D4, F4, D4,    // measure 6
-         G4, E4, G4, E4, G4, E4, G4, E4,    // measure 7; repeat of measure 5
-         F4, D4, F4, D4, F4, D4, F4, D4,    // measure 8; repeat of measure 6
-         C4, REST, G4, G4, G4, F4,          // measure 9; repeat of measure 1
-         C4, REST, G4, G4, G4, F4};         // measure 10; repeat of measure 1
-         
-    float duration[count] = 
-        {Q, E, S, S, Q, Q,          // measure 1
-         Q, E, S, S, Q, Q,          // measure 2; repeat of measure 1
-         Q, E, S, S, Q, Q,          // measure 3; repeat of measure 1
-         Q, E, S, S, Q, Q,          // measure 4; repeat of measure 1
-         E, E, E, E, E, E, E, E,    // measure 5
-         E, E, E, E, E, E, E, E,    // measure 6
-         E, E, E, E, E, E, E, E,    // measure 7; repeat of measure 5
-         E, E, E, E, E, E, E, E,    // measure 8; repeat of measure 6
-         Q, E, S, S, Q, Q,          // measure 9; repeat of measure 1
-         Q, E, S, S, Q, Q};         // measure 10; repeat of measure 1
-         
+}
+
+boolean playMeasure1() {
+
+    int count = 6;
+    
+    float note[count] = {C4, REST, G4, G4, G4, F4};
+    float duration[count] = {Q, E, S, S, Q, Q};
+    
     for (int i = 0; i < count; i++) {
         
         tv.tone(note[i], duration[i]);
         delay(duration[i]+1);   
-        
+               
         // check for button press & exit if detected
-        button1Bounce->update();
-        button2Bounce->update();
+        button1Bounce.update();
+        button2Bounce.update();
         
-        if (button1Bounce->fallingEdge() || button2Bounce->fallingEdge()) {
-            return;
+        if (button1Bounce.fallingEdge() || button2Bounce.fallingEdge()) {
+            return false;
         }
         
     }
 
+    return true;
+    
+}
+
+boolean playMeasure5() {
+
+    int count = 8;
+    
+    float note[count] = {G4, E4, G4, E4, G4, E4, G4, E4};
+    float duration[count] = {E, E, E, E, E, E, E, E};
+    
+    for (int i = 0; i < count; i++) {
+        
+        tv.tone(note[i], duration[i]);
+        delay(duration[i]+1);   
+               
+        // check for button press & exit if detected
+        button1Bounce.update();
+        button2Bounce.update();
+        
+        if (button1Bounce.fallingEdge() || button2Bounce.fallingEdge()) {
+            return false;
+        }
+        
+    }
+
+    return true;
+    
+}
+
+boolean playMeasure6() {
+
+    int count = 8;
+    
+    float note[count] = {F4, D4, F4, D4, F4, D4, F4, D4};
+    float duration[count] = {E, E, E, E, E, E, E, E};
+    
+    for (int i = 0; i < count; i++) {
+        
+        tv.tone(note[i], duration[i]);
+        delay(duration[i]+1);   
+               
+        // check for button press & exit if detected
+        button1Bounce.update();
+        button2Bounce.update();
+        
+        if (button1Bounce.fallingEdge() || button2Bounce.fallingEdge()) {
+            return false;
+        }
+        
+    }
+
+    return true;
+    
 }
 
 // end of game theme

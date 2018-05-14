@@ -32,6 +32,9 @@
 
 // function definitions
 void playTitleTheme();
+boolean playMeasure1();
+boolean playMeasure5();
+boolean playMeasure6();
 void endGameTheme();
 void newHighScoreMelody();
 void wallBounceSound();

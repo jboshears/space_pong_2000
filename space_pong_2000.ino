@@ -139,7 +139,7 @@ void introScreen() {
     //tv.draw_rect(0,0,127,95,WHITE);
     
     // play the game melody
-    endGameTheme(); //playTitleTheme();
+    playTitleTheme();
     
     // initialize the game!
     initializeGame();
