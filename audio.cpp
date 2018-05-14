@@ -1,8 +1,11 @@
 #include "audio.h"
 #include <Arduino.h>
 #include <TVout.h>
+#include <Bounce.h>
 
 extern TVout tv;
+extern Bounce button1Bounce;
+extern Bounce button2Bounce;
 
 // play theme
 void playTitleTheme() {
@@ -34,9 +37,18 @@ void playTitleTheme() {
          Q, E, S, S, Q, Q};         // measure 10; repeat of measure 1
          
     for (int i = 0; i < count; i++) {
+        
         tv.tone(note[i], duration[i]);
         delay(duration[i]+1);   
-        // TODO; check for button press & exit if detected
+        
+        // check for button press & exit if detected
+        button1Bounce->update();
+        button2Bounce->update();
+        
+        if (button1Bounce->fallingEdge() || button2Bounce->fallingEdge()) {
+            return;
+        }
+        
     }
 
 }
