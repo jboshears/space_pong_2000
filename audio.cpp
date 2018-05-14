@@ -7,9 +7,6 @@ extern TVout tv;
 // play theme
 void playTitleTheme() {
 
-    delay(200);
-    return;
-
     //Measure 1
     tv.tone(C4,Q);         //middle C m1b1
     delay(1+Q);            //delay duration should always be 1 ms more than the note in order to separate them.
@@ -48,7 +45,7 @@ void playTitleTheme() {
     delay(1+Q);
     tv.tone(F4,Q);      //F quarter note on beat 4
     delay(1+Q);
-    
+
     //Measure 4
     tv.tone(C4,Q);      //middle C m4b1
     delay(1+Q);         //delay duration should always be 1 ms more than the note in order to separate them.
@@ -98,6 +95,10 @@ void playTitleTheme() {
     tv.tone(D4,E);
     delay(1+E);
 
+    return;
+
+    // drop these for brevity?
+
     //Measure 7 
     tv.tone(G4,E);      //Repeat of measure 5
     delay(1+E);
@@ -138,41 +139,15 @@ void playTitleTheme() {
 
 // end of game theme
 void endGameTheme() {
-    
-    tv.tone(G4,E);        //G on first 8th note 
-    delay(1+E);
-    tv.tone(E4,E);       //E on second 8th note
-    delay(1+E);
-    tv.tone(G4,E);
-    delay(1+E);
-    tv.tone(E4,E);
-    delay(1+E);
-    tv.tone(G4,E);
-    delay(1+E);
-    tv.tone(E4,E);
-    delay(1+E);
-    tv.tone(G4,E);
-    delay(1+E);
-    tv.tone(E4,E);
-    delay(1+E);
-    
-    //Measure 6
-    tv.tone(F4,E);       //F on first 8th note
-    delay(1+E);
-    tv.tone(D4,E);       //D on second 8th note
-    delay(1+E);
-    tv.tone(F4,E);
-    delay(1+E);
-    tv.tone(D4,E);
-    delay(1+E);
-    tv.tone(F4,E);
-    delay(1+E);
-    tv.tone(D4,E);
-    delay(1+E);
-    tv.tone(F4,E);
-    delay(1+E);
-    tv.tone(D4,E);
-    delay(1+E);
+
+    int count = 16;
+    float note[count] = {G4, E4, G4, E4, G4, E4, G4, E4, F4, D4, F4, D4, F4, D4, F4, D4};
+    float duration[count] = {E, E, E, E, E, E, E, E, E, E, E, E, E, E, E, E};
+
+    for (int i = 0; i < count; i++) {
+        tv.tone(note[i], duration[i]);
+        delay(duration[i]+1);   
+    }
 
 }
 

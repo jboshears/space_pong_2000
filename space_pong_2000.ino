@@ -139,7 +139,7 @@ void introScreen() {
     //tv.draw_rect(0,0,127,95,WHITE);
     
     // play the game melody
-    playTitleTheme();
+    endGameTheme(); //playTitleTheme();
     
     // initialize the game!
     initializeGame();
@@ -365,7 +365,9 @@ void moveBall() {
 void checkForGameOver() {
 
     if (timeLeft == 0) {
-        // todo
+        delay(500);
+        endGameTheme();
+        delay(500);
         introScreen();
     }
     
