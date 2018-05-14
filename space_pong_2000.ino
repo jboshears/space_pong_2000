@@ -365,16 +365,64 @@ void moveBall() {
 void checkForGameOver() {
 
     if (timeLeft == 0) {
+        
         delay(500);
+
+        tv.clear_screen();
+        tv.select_font(font8x8);
+        tv.print(28, 30, "GAME OVER");
+        
+        char scoreBuffer1[4];
+        sprintf (scoreBuffer1, "%03d", player1.score); 
+
+        char scoreBuffer2[4];
+        sprintf (scoreBuffer2, "%03d", player2.score); 
+    
+        if (player2.score > player1.score) {
+        
+            tv.print(36, 42, player2.initials.c_str());
+            tv.print(68, 42, scoreBuffer2);
+            tv.print(36, 52, player1.initials.c_str());
+            tv.print(68, 52, scoreBuffer1);
+
+            tv.print(24, 64, "WINNER");
+            tv.print(80, 64, player2.initials.c_str());
+          
+        }
+        
+        else if (player1.score > player2.score) {
+
+            tv.print(36, 42, player1.initials.c_str());
+            tv.print(68, 42, scoreBuffer1);
+            tv.print(36, 52, player2.initials.c_str());
+            tv.print(68, 52, scoreBuffer2);
+
+            tv.print(24, 64, "WINNER");
+            tv.print(80, 64, player1.initials.c_str());
+            
+        }
+        else {
+
+            tv.print(36, 42, player1.initials.c_str());
+            tv.print(68, 42, scoreBuffer1);
+            tv.print(36, 52, player2.initials.c_str());
+            tv.print(68, 52, scoreBuffer2);
+            
+        }
+        
         endGameTheme();
-        delay(500);
+        delay(4000); // todo wait for button press here
         introScreen();
+        
     }
     
 }
 
 // drop the ball onto the field
 void dropBall() {
+
+    // pong field; down 10 pixels; then 127 wide by 85 high
+    tv.draw_rect(0,10,127,85,WHITE,BLACK);
 
     byte startingRadius = 25;
 
