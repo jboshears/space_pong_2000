@@ -23,18 +23,21 @@ SPACE PONG 2000
 #define PLAYER1_POT 5
 #define PLAYER2_POT 1
 
+#define POT_LOWER_BOUND 515
+#define POT_UPPER_BOUND 1023
+
 // ----------------------------------------------------------------
 // variables
 // ----------------------------------------------------------------
 // instantiate tv object
 TVout tv;
 
-typedef struct {
+struct Player {
     int  paddleLocation;
     int  oldPaddleLocation;
     String initials;
     int score;
-} Player;
+};
 
 Player player1;
 Player player2;
@@ -84,8 +87,8 @@ void loop() {
     // erase paddles, get the location, and redraw them
     erasePaddles(player1.paddleLocation, player2.paddleLocation);
     
-    player1.paddleLocation = map(analogRead(PLAYER1_POT), 515, 1023, 11, 94 - PADDLE_HEIGHT);
-    player2.paddleLocation = map(analogRead(PLAYER2_POT), 515, 1023, 11, 94 - PADDLE_HEIGHT); 
+    player1.paddleLocation = map(analogRead(PLAYER1_POT), POT_LOWER_BOUND, POT_UPPER_BOUND, 11, 94 - PADDLE_HEIGHT);
+    player2.paddleLocation = map(analogRead(PLAYER2_POT), POT_LOWER_BOUND, POT_UPPER_BOUND, 11, 94 - PADDLE_HEIGHT); 
     
     // don't let the paddle location go below 11
     if (player1.paddleLocation < 11) { player1.paddleLocation = 11; }
@@ -156,7 +159,9 @@ void initializeGame() {
     getPlayerNames();
    
     // pong field; down 10 pixels; then 127 wide by 85 high
-    tv.draw_rect(0,10,127,85,WHITE,BLACK);
+    //tv.draw_rect(0,10,127,85,WHITE,BLACK);
+    tv.draw_line(0,10,127,10, WHITE);
+    tv.draw_line(0,95,127,95, WHITE);
     
     tv.select_font(font6x8);
         
@@ -181,8 +186,8 @@ void initializeGame() {
     drawVortex(vortex.x, vortex.y);
 
     // initialize the paddles
-    player1.paddleLocation = map(analogRead(PLAYER1_POT), 535, 1023, 11, 94 - PADDLE_HEIGHT);
-    player2.paddleLocation = map(analogRead(PLAYER2_POT), 535, 1023, 11, 94 - PADDLE_HEIGHT);
+    player1.paddleLocation = map(analogRead(PLAYER1_POT), POT_LOWER_BOUND, POT_UPPER_BOUND, 11, 94 - PADDLE_HEIGHT);
+    player2.paddleLocation = map(analogRead(PLAYER2_POT), POT_LOWER_BOUND, POT_UPPER_BOUND, 11, 94 - PADDLE_HEIGHT);
     player1.oldPaddleLocation = player1.paddleLocation;
     player2.oldPaddleLocation = player2.paddleLocation;
     drawPaddles(player1.paddleLocation, player2.paddleLocation);
@@ -217,7 +222,7 @@ char getLetterFromPot(byte pot, Bounce *bounceObject, byte x, byte y) {
 
     byte cursorColor = WHITE;
     byte lowerAsciiRange = 65; // 65 is A
-    byte upperAsciiRange = 91; // 90 is Z
+    byte upperAsciiRange = 90; // 90 is Z
     
     while (true) {
         
@@ -230,10 +235,7 @@ char getLetterFromPot(byte pot, Bounce *bounceObject, byte x, byte y) {
             cursorColor = WHITE;
         }
 
-        char c = constrain(map(analogRead(pot), 515, 1023, lowerAsciiRange, upperAsciiRange), lowerAsciiRange, upperAsciiRange);
-
-        // translate 91 to 32 (space)
-        if (c == 91) { c = 32; }
+        char c = constrain(map(analogRead(pot), POT_LOWER_BOUND, POT_UPPER_BOUND, lowerAsciiRange, upperAsciiRange), lowerAsciiRange, upperAsciiRange);
         
         tv.print(x,y,c);
         
@@ -252,33 +254,72 @@ char getLetterFromPot(byte pot, Bounce *bounceObject, byte x, byte y) {
 // get the player names
 void getPlayerNames() {
 
-    tv.select_font(font6x8);
+    tv.select_font(font8x8);
 
     // player 1:
     player1.initials = "";
     player1.score = 0;
-    tv.print(7,8,"Player 1?");
-    tv.print(54,16,"AAA");
+    tv.print(12,8,"Player 1:");
+    tv.print(88,8,"AAA");
 
     // get initials from pot
-    player1.initials += getLetterFromPot(PLAYER1_POT, &button1Bounce, 54, 16);
-    player1.initials += getLetterFromPot(PLAYER1_POT, &button1Bounce, 60, 16);
-    player1.initials += getLetterFromPot(PLAYER1_POT, &button1Bounce, 66, 16);
+    player1.initials += getLetterFromPot(PLAYER1_POT, &button1Bounce, 88, 8);
+    player1.initials += getLetterFromPot(PLAYER1_POT, &button1Bounce, 88+8, 8);
+    player1.initials += getLetterFromPot(PLAYER1_POT, &button1Bounce, 88+16, 8);
+    
+    scoreSound(1);
 
     // player 2:
     player2.initials = "";
     player2.score = 0;
-    tv.print(7,32,"Player 2?");
-    tv.print(54,40,"AAA");
+    tv.print(12,20,"Player 2:");
+    tv.print(88,20,"AAA");
 
      // get initials from pot
-    player2.initials += getLetterFromPot(PLAYER2_POT, &button2Bounce, 54, 40);
-    player2.initials += getLetterFromPot(PLAYER2_POT, &button2Bounce, 60, 40);
-    player2.initials += getLetterFromPot(PLAYER2_POT, &button2Bounce, 66, 40);
+    player2.initials += getLetterFromPot(PLAYER2_POT, &button2Bounce, 88, 20);
+    player2.initials += getLetterFromPot(PLAYER2_POT, &button2Bounce, 88+8, 20);
+    player2.initials += getLetterFromPot(PLAYER2_POT, &button2Bounce, 88+16, 20);
+
+    scoreSound(2);
     
     delay(1000);
     tv.clear_screen();
     
+}
+
+// determine y vector based on where the ball hit the paddle
+// larger values along paddle edge, down to 0 in the middle
+int calculateTrajectory(int ball_location, int paddle_location) {
+    
+    switch (ball_location - paddle_location) {
+        // top edge
+        case 0:
+            return -3;
+        case 1:
+        case 2:
+        case 3:
+            return -2;
+        case 4:
+        case 5:
+        case 6:
+            return -1;
+        // middle
+        case 7:
+        case 8:
+            return 0;
+        case 9:
+        case 10:
+        case 11:
+            return 1;
+        case 12:
+        case 13:
+        case 14:
+            return 2;
+        // bottom edge
+        case 15:
+            return 3;
+    }   
+        
 }
 
 // calculate new ball location
@@ -286,18 +327,31 @@ void moveBall() {
 
     // bounced off of paddle 1
     if ( ball.x == 5 && ball.y >= player1.paddleLocation && ball.y <= player1.paddleLocation + PADDLE_HEIGHT)  {
+        
         paddleBounceSound();
+        
+        // reverse the x vector
         ball.dx *= -1; 
-        ball.dy *= -1; 
-        //ball.dy *= random(1,3);
+        
+        // determine y vector based on where the ball hit the paddle
+        // larger values along paddle edge, down to 0 in the middle
+        ball.dy = calculateTrajectory(ball.y, player1.paddleLocation);
+        
     }
 
     // bounced off of paddle 2
     if ( ball.x == 121 && ball.y >= player2.paddleLocation && ball.y <= player2.paddleLocation + PADDLE_HEIGHT)  {
+        
         paddleBounceSound();
+        
+        // reverse the x vector
         ball.dx *= -1; 
-        ball.dy *= -1; 
-        //ball.dy *= random(1,3);
+        
+        // determine y vector based on where the ball hit the paddle
+        // larger values along paddle edge, down to 0 in the middle
+        // ball.dy *= -1; 
+        ball.dy = calculateTrajectory(ball.y, player2.paddleLocation);
+           
     }
 
     // bounce off the walls
@@ -307,7 +361,7 @@ void moveBall() {
     }
     
     // player 1 scored
-    if (ball.x == 125) {
+    if (ball.x == 125 - PADDLE_WIDTH) {
         player1.score++;
         updateScore(1, player1.score);
         scoreSound(1);
@@ -316,7 +370,7 @@ void moveBall() {
     }
 
     // player 2 scored
-    if (ball.x == 1) {
+    if (ball.x == 1 + PADDLE_WIDTH) {
         player2.score++;
         updateScore(2, player2.score);
         scoreSound(2);
@@ -399,7 +453,7 @@ void checkForGameOver() {
 
             tv.print(24, 64, "WINNER");
             tv.print(80, 64, player1.initials.c_str());
-            
+
         }
         else {
 
@@ -407,7 +461,7 @@ void checkForGameOver() {
             tv.print(68, 42, scoreBuffer1);
             tv.print(36, 52, player2.initials.c_str());
             tv.print(68, 52, scoreBuffer2);
-            
+    
         }
         
         endGameTheme();
@@ -422,7 +476,10 @@ void checkForGameOver() {
 void dropBall() {
 
     // pong field; down 10 pixels; then 127 wide by 85 high
-    tv.draw_rect(0,10,127,85,WHITE,BLACK);
+    // tv.draw_rect(0,10,127,85,WHITE,BLACK);
+    tv.draw_line(0,10,127,10, WHITE);
+    tv.draw_line(0,95,127,95, WHITE);
+    
     drawPaddles(player1.paddleLocation, player2.paddleLocation);
 
     byte startingRadius = 25;
